@@ -1,6 +1,6 @@
 {
-  "name": "Cookie Access Extension",
-  "description": "This extension accesses cookies of a website.",
+  "name": "compass Extension",
+  "description": "This extension accesses details of coding platforms",
   "version": "1.0",
   "manifest_version": 3,
   "permissions": [
@@ -16,11 +16,17 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "static/compass.png",
       "48": "static/compass.png",
       "128": "static/compass.png"
     }
+  },
+  "content_scripts":[
+    {
+    "matches": ["https://*.leetcode.com/*"],
+    "js": ["content/leetcode.js"],
+    "run_at": "document_idle"
   }
+  ]
 }
