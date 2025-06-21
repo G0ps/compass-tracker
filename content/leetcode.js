@@ -12,7 +12,11 @@ chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
 
     else if(message.action === 'parseDetails'){
         const problemTitle = parseTitle();
-        const problemLink = parseLink();
+        const problemLink = parseUrl();
+        const parsedTags = parseTags(); // level , [topics]
+
+        
+        console.log(parsedTags.level , parsedTags.topics);
     }
 });
 
@@ -34,3 +38,37 @@ function parseTitle() {
         console.log("No <a> tag found inside the div.");
     }
 }
+
+//parse url of the problem
+function parseUrl()
+{
+    return window.location.href;
+}
+
+//parse topics
+function parseTags()
+{
+    let tags = document.getElementsByClassName("bg-fill-secondary");
+
+    let level = "";
+    let topics = [];
+    let skipWords = ["Topics", "Companies", "Hint"];
+    let isNumberLike = text => /^[\d.,]+[KM]?$/.test(text);
+
+    for (let tag of tags) {
+    let text = tag.innerText.trim();
+
+    if (["Easy", "Medium", "Hard"].includes(text)) {
+        level = text;
+    } else if (!skipWords.includes(text) && !isNumberLike(text)) {
+        topics.push(text);
+    }
+    }
+
+    return ({
+        level,
+        topics 
+    });
+}
+
+
