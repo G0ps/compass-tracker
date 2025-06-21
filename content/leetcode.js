@@ -1,7 +1,3 @@
-chrome.runtime.sendMessage({
-    success : true,
-    message : "hello from leetcode"
-})
 console.log("came inside leetcode")
 
 chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
@@ -9,14 +5,18 @@ chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
     {
         console.log(message.statement);
     }
+    if(message.action === 'acknowledgement')
+    {
+        console.log("acknowledged");
+    }
 
-    else if(message.action === 'parseDetails'){
+
+    if(message.action === 'parseDetails'){
         const problemTitle = parseTitle();
         const problemLink = parseUrl();
         const parsedTags = parseTags(); // level , [topics]
-
-        
-        console.log(parsedTags.level , parsedTags.topics);
+        const startTime = new Date().toLocaleString();;
+        sendResponse({problemTitle , problemLink , parsedTags , startTime});
     }
 });
 
