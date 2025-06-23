@@ -1,9 +1,6 @@
 import GLOBAL from "./GLOBAL.js";
 
 
-let bookings = new Map();// saves tab id with booking id
-//to restore after coming online from session storage
-
 chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
     // console.log(message.success , message.message)
     // sendResponse({success : true , message : "Background in connected"});
@@ -12,22 +9,25 @@ chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
     return true;
 })
 
-chrome.action.onClicked.addListener((tab) => {
-
-    if(bookings.has(tab.id)){
-        //second click
-        resolveServerBookig(bookings.get(tab.id));
-        bookings.delete(tab.id);
-        debug("Booking resolved" , tab)
-    }
-    else{
-        //first click ..  
-        chrome.tabs.sendMessage(tab.id , {action : "parseDetails" , statement : "connected "} , (response) =>{
-            let bookingId = sendServerBooking(response,tab); // should return booking id to terminate it later
-            debug(response,tab);
-            bookings.set(tab.id , bookingId);
+chrome.action.onClicked.addListener(async (tab) => {
+    // debug("comes inside clicked log" , tab)
+           //first click ..  
+        chrome.tabs.sendMessage(tab.id , {action : "parseDetails" , statement : "connected "} , async (response) =>{
+            const {isInitiated} = response;
+            // debug(response , tab)
+            if(isInitiated === "false"){
+                const bookingDetails = response;
+                // debug(bookingDetails , tab)
+                const bookingId = await sendServerBooking(bookingDetails , tab)
+                debug(bookingId , tab);
+                chrome.tabs.sendMessage(tab.id , {action : "saveBookingId" , statement : bookingId})                
+            }
+            else{
+                
+            }
+            return true;
         });
-    }
+    
 })
 
 // HELPER FUNCTIONS
@@ -49,9 +49,10 @@ async function sendServerBooking(message, tab) {
         });
 
         const data = await res.json();
+        // debug(data , tab)
         if (data.success) {
-            // debug(data.data.bookingId , tab);
-            return data.data.bookingId; // booking ID will be returned
+            // debug(data.data , tab);
+            return data.data; // booking ID will be returned
         } else {
             debug("Booking failed", tab);
             return null;

@@ -24,10 +24,10 @@ export const initiateBooking = async(req , res) => {
             problemTitle,
             startTime
         })
-        const id = newBooking._id;
+        const id = await newBooking._id;
         await newBooking.save();
         console.log("booking approved");
-        return res.json({success : true , data : {bookingId : id}});
+        return res.json({success : true , data : id});
     }catch(error) {
         console.log(error.message)
         return res.status(500).json({success : false , error:error.message})

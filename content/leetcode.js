@@ -1,4 +1,5 @@
 console.log("came inside leetcode")
+sessionStorage.setItem("isInitiated" , "false")
 
 chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
     if(message.action === 'debugStatement')
@@ -12,12 +13,34 @@ chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
 
 
     if(message.action === 'parseDetails'){
-        const problemTitle = parseTitle();
-        const problemLink = parseUrl();
-        const parsedTags = parseTags(); // level , [topics]
-        const startTime = new Date().toLocaleString();;
-        sendResponse({problemTitle , problemLink , parsedTags , startTime});
+
+        // console.log("here")
+        if(sessionStorage.getItem("isInitiated") === "false")
+        {
+            const problemTitle = parseTitle();
+            const problemLink = parseUrl();
+            const parsedTags = parseTags(); // level , [topics]
+            const startTime = new Date().toLocaleString();
+            const bookingId = "-1";
+            // console.log("here 2")
+            sendResponse({problemTitle , problemLink , parsedTags , startTime , bookingId , isInitiated : sessionStorage.getItem("isInitiated")});
+        }
+        else{
+            const bookingId = sessionStorage.getItem("bookingId");
+            const endTime = new Date().toLocaleDateString
+            // console.log("here 3")
+            
+            sendResponse({bookingId , endTime , isInitiated : sessionStorage.getItem("isInitiated")});
+            sessionStorage.setItem("isInitiated" , "false");
+
+        }
     }
+    if(message.action === 'saveBookingId')
+        {
+            console.log(message.statement);
+            sessionStorage.setItem("bookingId" , "nothing")
+            sessionStorage.setItem("isInitiated" , "true");
+        }
 });
 
 //parsing title of the problem
