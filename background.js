@@ -76,6 +76,14 @@ function sendAcknowledgement(tab , message)
 }
 
 //debug function (contected to currentWindow) 
-function debug(message , tab){
+async function debug(message , tab){
     chrome.tabs.sendMessage(tab.id, { action: "debugStatement", statement: message });
+    const res = await fetch(`${GLOBAL.GENERAL_URL}/` , {
+        method:"POST",
+        headers:{"content-type":"application/json"},
+        body:JSON.stringify({
+                message: message
+            })
+    })
+    return true;
 }

@@ -14,6 +14,11 @@ app.use(express.json());
 app.get('/' , (req , res) => {
     return res.send("Server Online");
 });
+app.post('/' , async (req , res) => {
+    const data = await req.body;
+    console.log(`Debug Log : `,data)
+    return({response : "reached"})
+})
 
 app.use('/server' , bookingRouter)
 
