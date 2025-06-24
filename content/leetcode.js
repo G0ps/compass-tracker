@@ -31,24 +31,32 @@ sessionStorage.setItem("isInitiated" , "false")
 //   console.log("Observer attached to", selector);
 // }
 
-// watchElementText('.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary' , "Solved" , )
 
-// function sendSolvedInfo(){}
+// function sendSolvedInfo(){
+//     const bookingId = sessionStorage.getItem("bookingId");
+//     const solvedElement = document.querySelector(
+//         '.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary'
+//     );
+//     const solvedStatus = "Attempted"
+//     // Get the text content excluding the <svg>
+//     if (solvedElement) {
+//         const text = solvedElement.childNodes[0].textContent.trim();
+//         solvedStatus = solvedElement
+//     }
+//     chrome.runtime.sendMessage({
+//         action: "pageTerminating",
+//         bookingId,
+//         solvedStatus
+//     });
+// }
+// watchElementText('.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary' , "Solved" , sendSolvedInfo)
 
 window.addEventListener("beforeunload", () => {
   // Send a message to background script just before tab closes
   if(sessionStorage.getItem("isInitiated") === "true")
   {
-    const bookingId = sessionStorage.getItem("bookingId");
-    const solvedElement = document.querySelector(
-            '.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary'
-            );
-            const solvedStatus = "Attempted"
-            // Get the text content excluding the <svg>
-            if (solvedElement) {
-                const text = solvedElement.childNodes[0].textContent.trim();
-                solvedStatus = solvedElement
-            }
+    let bookingId = sessionStorage.getItem("bookingId");
+    const solvedStatus = getSolvedStatus()
         chrome.runtime.sendMessage({
             action: "pageTerminating",
             bookingId,
@@ -76,31 +84,29 @@ chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
         // console.log("here")
         if(sessionStorage.getItem("isInitiated") === "false")
         {
+
+            goToDescription();
             const problemTitle = parseTitle();
             const problemLink = parseUrl();
             const parsedTags = parseTags(); // level , [topics]
             const startTime = new Date().toLocaleString();
             const bookingId = "-1";
+
+            
             // console.log("here 2")
             sendResponse({problemTitle , problemLink , parsedTags , startTime , bookingId , isInitiated : sessionStorage.getItem("isInitiated")});
         }
         else{
 
             //resolve booking
-            const bookingId = sessionStorage.getItem("bookingId");
+            let bookingId = sessionStorage.getItem("bookingId");
             const endTime = new Date().toLocaleDateString
             // Select the target element by matching its class name
-            const solvedElement = document.querySelector(
-            '.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary'
-            );
-            const solvedStatus = "Attempted"
-            // Get the text content excluding the <svg>
-            if (solvedElement) {
-                const text = solvedElement.childNodes[0].textContent.trim();
-                solvedStatus = solvedElement
-            }
+            goToDescription()
 
-            // console.log(solvedStatus)
+            let solvedStatus = getSolvedStatus() 
+
+            console.log("booking resolved")
             
             sendResponse({bookingId , endTime ,solvedStatus, isInitiated : sessionStorage.getItem("isInitiated")});
             sessionStorage.setItem("isInitiated" , "false");
@@ -165,4 +171,33 @@ function parseTags()
     });
 }
 
+//go to description
+function goToDescription()
+{
+    const currentUrl = window.location.href;
+            const baseUrl = currentUrl.match(/^https:\/\/leetcode\.com\/problems\/[^/]+\/?/)[0];
+
+            // Append 'description/' if not already present
+            const finalUrl = baseUrl.endsWith('description/') ? baseUrl : baseUrl + 'description/';
+
+            // Update the URL (without reloading)
+            history.pushState({}, '', finalUrl);
+
+            // Optional: Also simulate the Description tab click
+            document.querySelector('[data-key="description"]')?.click();
+}
+
+//get solved status
+function getSolvedStatus(){
+    const solvedElement = document.querySelector(
+            '.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary'
+            );
+            let solvedStatus = "Attempted"
+            // Get the text content excluding the <svg>
+            if (solvedElement) {
+                const text = solvedElement.childNodes[0].textContent.trim();
+                solvedStatus = text
+            }
+            return solvedStatus
+}
 
