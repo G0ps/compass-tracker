@@ -33,3 +33,25 @@ export const initiateBooking = async(req , res) => {
         return res.status(500).json({success : false , error:error.message})
     }
 }
+
+//resolve booking
+export const resolveBooking = async(req , res) => {
+    const {bookingId , endTime , solvedStatus} = req.body;
+
+    if(!bookingId || !endTime)
+    {
+        return res.json({success : false , message : "booking Id || end time missing missing"});
+    }
+
+    try{
+        const booking = await bookingModel.findOne({_id : bookingId});
+        booking.endTime = endTime;
+        booking.solvedStatus = solvedStatus;
+        console.log(solvedStatus , "solved")
+        await booking.save();
+        return res.json({success : true , message :"booking resolved"})
+    }catch(er)
+    {
+        return res.json({success : false , message : er.message});
+    }
+}

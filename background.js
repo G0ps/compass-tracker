@@ -4,7 +4,10 @@ import GLOBAL from "./GLOBAL.js";
 chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
     // console.log(message.success , message.message)
     // sendResponse({success : true , message : "Background in connected"});
-
+    if(message.action === "pageTerminating")
+    {
+        resolveServerBookig(message.bookingId , " " , message.solvedStatus)
+    }
 
     return true;
 })
@@ -19,11 +22,12 @@ chrome.action.onClicked.addListener(async (tab) => {
                 const bookingDetails = response;
                 // debug(bookingDetails , tab)
                 const bookingId = await sendServerBooking(bookingDetails , tab)
-                debug(bookingId , tab);
-                chrome.tabs.sendMessage(tab.id , {action : "saveBookingId" , statement : bookingId})                
+                debug("booked" , tab);
+                chrome.tabs.sendMessage(tab.id , {action : "saveBookingId" , bookingId : bookingId})                
             }
             else{
-                
+                // debug(response.solvedStatus , tab)
+                await resolveServerBookig(response.bookingId , tab , response.solvedStatus)
             }
             return true;
         });
@@ -64,10 +68,21 @@ async function sendServerBooking(message, tab) {
 }
 
 //resolve booking
-async function resolveServerBookig(id)
+async function resolveServerBookig(id , tab , solvedStatus)
 {
     const endTime = Date.now();
-    return true;
+    const res = await fetch(`${GLOBAL.GENERAL_URL}/server/resolve/booking` , {
+        method : "POST",
+        headers : {"content-type" : "application/json"},
+        body:JSON.stringify({
+            bookingId : id,
+            endTime : endTime,
+            solvedStatus:solvedStatus
+        })
+    })
+    const data = await res.json();
+    // debug(data.message , tab)
+    return data.success;
 }
 
 //ACHKNOWELDGEMENT HANDLER

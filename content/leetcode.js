@@ -1,6 +1,65 @@
 console.log("came inside leetcode")
 sessionStorage.setItem("isInitiated" , "false")
 
+//mutation observer
+// function watchElementText(selector, targetString, callback) {
+//   const target = document.querySelector(selector);
+
+//   const observer = new MutationObserver((mutationsList) => {
+//     for (const mutation of mutationsList) {
+//       if (
+//         mutation.type === "childList" ||
+//         mutation.type === "characterData" ||
+//         mutation.type === "subtree"
+//       ) {
+//         const currentText = target.textContent.trim();
+//         if (currentText.includes(targetString)) {
+//           console.log(`Match found: "${targetString}"`);
+//           callback();
+//           observer.disconnect();
+//         }
+//       }
+//     }
+//   });
+
+//   observer.observe(target, {
+//     childList: true,
+//     characterData: true,
+//     subtree: true,
+//   });
+
+//   console.log("Observer attached to", selector);
+// }
+
+// watchElementText('.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary' , "Solved" , )
+
+// function sendSolvedInfo(){}
+
+window.addEventListener("beforeunload", () => {
+  // Send a message to background script just before tab closes
+  if(sessionStorage.getItem("isInitiated") === "true")
+  {
+    const bookingId = sessionStorage.getItem("bookingId");
+    const solvedElement = document.querySelector(
+            '.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary'
+            );
+            const solvedStatus = "Attempted"
+            // Get the text content excluding the <svg>
+            if (solvedElement) {
+                const text = solvedElement.childNodes[0].textContent.trim();
+                solvedStatus = solvedElement
+            }
+        chrome.runtime.sendMessage({
+            action: "pageTerminating",
+            bookingId,
+            solvedStatus
+        });
+  }
+});
+
+
+
+
 chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
     if(message.action === 'debugStatement')
     {
@@ -26,19 +85,31 @@ chrome.runtime.onMessage.addListener((message , sender , sendResponse) => {
             sendResponse({problemTitle , problemLink , parsedTags , startTime , bookingId , isInitiated : sessionStorage.getItem("isInitiated")});
         }
         else{
+
+            //resolve booking
             const bookingId = sessionStorage.getItem("bookingId");
             const endTime = new Date().toLocaleDateString
-            // console.log("here 3")
+            // Select the target element by matching its class name
+            const solvedElement = document.querySelector(
+            '.text-body.flex.flex-none.items-center.gap-1.py-1\\.5.text-text-secondary.dark\\:text-text-secondary'
+            );
+            const solvedStatus = "Attempted"
+            // Get the text content excluding the <svg>
+            if (solvedElement) {
+                const text = solvedElement.childNodes[0].textContent.trim();
+                solvedStatus = solvedElement
+            }
+
+            // console.log(solvedStatus)
             
-            sendResponse({bookingId , endTime , isInitiated : sessionStorage.getItem("isInitiated")});
+            sendResponse({bookingId , endTime ,solvedStatus, isInitiated : sessionStorage.getItem("isInitiated")});
             sessionStorage.setItem("isInitiated" , "false");
 
         }
     }
     if(message.action === 'saveBookingId')
         {
-            console.log(message.statement);
-            sessionStorage.setItem("bookingId" , "nothing")
+            sessionStorage.setItem("bookingId" , message.bookingId)
             sessionStorage.setItem("isInitiated" , "true");
         }
 });

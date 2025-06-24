@@ -1,6 +1,9 @@
 import mongoose from "mongoose"
 
 const bookingSchema = new mongoose.Schema({
+    userId:{
+        type : String
+    },
     platformName : {
         type : String,
         required : true
@@ -24,6 +27,12 @@ const bookingSchema = new mongoose.Schema({
             },
             message: 'Each problemLink must be a valid URL.'
         }
+    },
+    solvedStatus:{
+        type : String,
+        enum : ["Attempted" , "Solved"],
+        default : "Attempted",
+        required:true
     },
     problemTitle :{
         type : String,
